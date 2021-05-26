@@ -2,7 +2,29 @@ import itertools
 from sage.crypto.boolean_function import BooleanFunction
 from sage.crypto.sboxes import Midori_Sb0 as S
 
-MC = load("midori_mixcolumn")
+def getBaseCase():
+    return [
+        (1, matrix([[1, 0], [0, 1]])),
+        (1, matrix([[0, 1], [1, 0]])),
+        (1, matrix([[1, 0], [0, -1]])),
+        (-1, matrix([[0, 1], [-1, 0]]))
+    ]
+
+def expandTerm(sign, term):
+    return [
+        (sign,  block_matrix([[term, 0], [0, term]])),
+        (sign,  block_matrix([[0, term], [term, 0]])),
+        (sign,  block_matrix([[term, 0], [0, -term]])),
+        (-sign, block_matrix([[0, term], [-term, 0]]))
+    ]
+
+def expand(terms):
+    result = []
+    for sign, term in terms:
+        result.extend(expandTerm(sign, term))
+    return result
+
+MC = expand(expand(expand(getBaseCase())))
 C = S.linear_approximation_table().T / 8
 R.<x0, x1, x2, x3> = BooleanPolynomialRing()
 v1 = vector(BooleanFunction(R(
